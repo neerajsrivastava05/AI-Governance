@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Program Governance Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy-mid: #112040;
+    --navy-light: #1a3060;
+    --accent: #3b82f6;
+    --accent-glow: #60a5fa;
+    --teal: #0d9488;
+    --teal-light: #99f6e4;
+    --gold: #f59e0b;
+    --gold-light: #fde68a;
+    --red: #ef4444;
+    --red-light: #fecaca;
+    --purple: #8b5cf6;
+    --purple-light: #ddd6fe;
+    --green: #22c55e;
+    --green-light: #bbf7d0;
+    --orange: #f97316;
+    --surface: #0f1f3d;
+    --surface2: #162540;
+    --surface3: #1e3055;
+    --border: rgba(99,140,255,0.15);
+    --border2: rgba(99,140,255,0.25);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: var(--navy-mid);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 100; overflow-y: auto;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo .logo-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    color: var(--accent); text-transform: uppercase;
+    display: block; margin-bottom: 4px;
+  }
+  .sidebar-logo h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700; color: #fff;
+    line-height: 1.3;
+  }
+  .sidebar-score {
+    margin: 16px; padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .sidebar-score .score-label {
+    font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .sidebar-score .score-val {
+    font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+    color: var(--accent-glow);
+  }
+  .sidebar-score .score-bar {
+    height: 4px; background: var(--surface3); border-radius: 2px; margin-top: 8px;
+  }
+  .sidebar-score .score-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+    transition: width 0.6s ease;
+  }
+  .nav-section {
+    padding: 8px 12px 4px;
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; margin: 1px 8px;
+    border-radius: 8px; cursor: pointer;
+    transition: all 0.2s; font-size: 13px; color: var(--text-muted);
+    border: none; background: none; width: calc(100% - 16px); text-align: left;
+  }
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+  .nav-item.active { background: rgba(59,130,246,0.15); color: var(--accent-glow); border: 1px solid rgba(59,130,246,0.2); }
+  .nav-item .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-item .nav-progress {
+    margin-left: auto; font-size: 10px; font-weight: 600;
+    color: var(--text-dim); white-space: nowrap;
+  }
+  .nav-item.active .nav-progress { color: var(--accent); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 260px; min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,22,40,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-breadcrumb {
+    font-size: 13px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .topbar-breadcrumb span { color: var(--text); font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .btn {
+    padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border2); background: var(--surface);
+    color: var(--text); transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--surface3); border-color: var(--accent); color: var(--accent-glow); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-glow); color: #fff; }
+
+  /* ── CONTENT ── */
+  .content { padding: 32px; }
+
+  /* ── HERO DASHBOARD ── */
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px; margin-top: 24px;
+  }
+  .metric-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .metric-card .m-label {
+    font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .metric-card .m-val {
+    font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  }
+  .metric-card .m-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .m-blue { color: var(--accent-glow); }
+  .m-teal { color: var(--teal-light); }
+  .m-gold { color: var(--gold-light); }
+  .m-red { color: #fca5a5; }
+
+  /* ── SECTION PANEL ── */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; margin-bottom: 20px; overflow: hidden;
+    display: none;
+  }
+  .panel.active { display: block; }
+  .panel-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .panel-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .panel-title h2 {
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: #fff;
+  }
+  .panel-title p { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .panel-body { padding: 24px; }
+
+  /* ── SUBSECTION ── */
+  .subsection { margin-bottom: 28px; }
+  .subsection-title {
+    font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .subsection-title .stag {
+    background: var(--surface3); padding: 2px 10px; border-radius: 20px;
+    font-size: 10px; color: var(--text-muted); text-transform: none; letter-spacing: 0;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { display: flex; flex-direction: column; gap: 8px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .check-item:hover { border-color: var(--border2); background: var(--surface3); }
+  .check-item.done { border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.05); }
+  .check-box {
+    width: 18px; height: 18px; border: 1.5px solid var(--text-dim);
+    border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; transition: all 0.2s;
+  }
+  .check-item.done .check-box {
+    background: var(--green); border-color: var(--green); color: #fff;
+  }
+  .check-content .check-title { font-size: 13px; font-weight: 500; }
+  .check-content .check-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .check-meta {
+    margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0;
+  }
+  .check-meta .owner {
+    font-size: 10px; color: var(--text-dim);
+    background: var(--surface3); padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* ── RISK TABLE ── */
+  .risk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .risk-table th {
+    padding: 8px 12px; text-align: left; font-weight: 600; font-size: 10px;
+    letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-dim);
+    border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .risk-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .risk-table tr:last-child td { border-bottom: none; }
+  .risk-table tr:hover td { background: var(--surface2); }
+  .risk-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .risk-critical { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .risk-high { background: rgba(249,115,22,0.15); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
+  .risk-medium { background: rgba(245,158,11,0.15); color: #fde68a; border: 1px solid rgba(245,158,11,0.3); }
+  .risk-low { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+
+  /* ── SCORE BADGE ── */
+  .score-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 24px; border-radius: 6px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600;
+  }
+  .badge-active { background: rgba(34,197,94,0.1); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
+  .badge-planned { background: rgba(59,130,246,0.1); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+  .badge-draft { background: rgba(245,158,11,0.1); color: #fde68a; border: 1px solid rgba(245,158,11,0.2); }
+  .badge-critical { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+  .badge-backlog { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ── PROGRESS BAR ── */
+  .prog-bar { height: 6px; background: var(--surface3); border-radius: 3px; }
+  .prog-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  /* ── RACI TABLE ── */
+  .raci-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .raci-table th {
+    padding: 8px 10px; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-dim); border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .raci-table th:first-child { text-align: left; }
+  .raci-table td {
+    padding: 9px 10px; border-bottom: 1px solid var(--border);
+    text-align: center; color: var(--text-muted);
+  }
+  .raci-table td:first-child { text-align: left; font-size: 12px; color: var(--text); }
+  .raci-table tr:hover td { background: var(--surface2); }
+  .raci-r { color: var(--accent-glow); font-weight: 700; }
+  .raci-a { color: var(--gold); font-weight: 700; }
+  .raci-c { color: var(--teal-light); font-weight: 600; }
+  .raci-i { color: var(--text-dim); }
+
+  /* ── KPI GRID ── */
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .kpi-card .kpi-domain { font-size: 10px; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.5px; }
+  .kpi-card .kpi-name { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+  .kpi-card .kpi-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .kpi-card .kpi-target { font-size: 11px; color: var(--text-muted); }
+  .kpi-card .kpi-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent-glow); }
+
+  /* ── ROADMAP ── */
+  .roadmap-item {
+    display: flex; gap: 16px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface2); margin-bottom: 8px; align-items: center;
+  }
+  .roadmap-item .ri-phase {
+    font-size: 10px; padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+    font-weight: 600;
+  }
+  .phase-foundation { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+  .phase-pilot { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  .phase-scale { background: rgba(13,148,136,0.15); color: var(--teal-light); }
+  .roadmap-item .ri-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .roadmap-item .ri-domain { font-size: 11px; color: var(--text-muted); }
+  .roadmap-item .ri-q { font-size: 11px; color: var(--text-dim); margin-left: auto; white-space: nowrap; }
+
+  /* ── FRAMEWORK OVERVIEW CARDS ── */
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .domain-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .domain-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .domain-card .dc-icon { font-size: 22px; margin-bottom: 10px; }
+  .domain-card .dc-name {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #fff;
+    margin-bottom: 4px;
+  }
+  .domain-card .dc-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+  .domain-card .dc-owner { font-size: 10px; color: var(--text-dim); }
+
+  /* ── INCIDENT LOG ── */
+  .incident-item {
+    padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface2); margin-bottom: 8px;
+  }
+  .incident-item .inc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .incident-item .inc-id { font-size: 10px; color: var(--text-dim); font-family: monospace; }
+  .incident-item .inc-title { font-size: 13px; font-weight: 500; flex: 1; }
+  .incident-item .inc-desc { font-size: 12px; color: var(--text-muted); }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab {
+    padding: 8px 16px; font-size: 12px; font-weight: 500; cursor: pointer;
+    color: var(--text-muted); border-bottom: 2px solid transparent;
+    transition: all 0.2s; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent-glow); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── PRINCIPLE CARD ── */
+  .principle-card {
+    display: flex; gap: 14px; padding: 14px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface2);
+    margin-bottom: 8px; align-items: flex-start;
+  }
+  .principle-card .pc-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    background: rgba(139,92,246,0.2); color: #c4b5fd; flex-shrink: 0;
+  }
+  .principle-card .pc-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .principle-card .pc-desc { font-size: 12px; color: var(--text-muted); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  /* ── PROGRESS TRACKER ── */
+  .prog-tracker {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+  }
+  .prog-domain {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted);
+  }
+  .prog-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .dot-done { background: var(--green); }
+  .dot-partial { background: var(--gold); }
+  .dot-none { background: var(--surface3); }
+
+  /* Dashboard only visible on overview */
+  #overview { display: block; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag { background: var(--surface3); color: var(--text-muted); padding: 3px 10px; border-radius: 20px; font-size: 10px; }
+
+  .reg-card {
+    padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface2); margin-bottom: 8px;
+  }
+  .reg-card .rc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .reg-card .rc-name { font-size: 13px; font-weight: 600; }
+  .reg-card .rc-region { font-size: 10px; color: var(--text-dim); margin-left: auto; }
+  .reg-card .rc-req { font-size: 12px; color: var(--text-muted); }
+
+  .model-card {
+    padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface2); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .model-card .mc-id { font-size: 10px; font-family: monospace; color: var(--text-dim); width: 50px; }
+  .model-card .mc-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .model-card .mc-stage { font-size: 11px; color: var(--text-muted); }
+  .model-card .mc-tier { font-size: 10px; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 220px; }
+    .main { margin-left: 220px; }
+    .hero-grid { grid-template-columns: 1fr 1fr; }
+    .domain-grid { grid-template-columns: 1fr 1fr; }
+    .kpi-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-tag">Enterprise AI</span>
+    <h1>Governance<br>Framework</h1>
+  </div>
+  <div class="sidebar-score">
+    <div class="score-label">OVERALL READINESS</div>
+    <div class="score-val" id="overall-score">0%</div>
+    <div class="score-bar"><div class="score-fill" id="overall-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <button class="nav-item active" onclick="showPage('overview',this)">
+    <span class="nav-icon">⬡</span> Dashboard
+  </button>
+
+  <div class="nav-section">Domains</div>
+  <button class="nav-item" onclick="showPage('strategy',this)">
+    <span class="nav-icon">◎</span> Strategy &amp; Vision
+    <span class="nav-progress" id="prog-strategy">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('governance',this)">
+    <span class="nav-icon">◈</span> Governance Structure
+    <span class="nav-progress" id="prog-governance">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('risk',this)">
+    <span class="nav-icon">◬</span> Risk Management
+    <span class="nav-progress" id="prog-risk">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('ethics',this)">
+    <span class="nav-icon">◇</span> Ethics &amp; Resp. AI
+    <span class="nav-progress" id="prog-ethics">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('data',this)">
+    <span class="nav-icon">⬡</span> Data Governance
+    <span class="nav-progress" id="prog-data">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('model',this)">
+    <span class="nav-icon">◉</span> Model Lifecycle
+    <span class="nav-progress" id="prog-model">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('security',this)">
+    <span class="nav-icon">⬟</span> Security &amp; Privacy
+    <span class="nav-progress" id="prog-security">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('compliance',this)">
+    <span class="nav-icon">◱</span> Compliance &amp; Reg.
+    <span class="nav-progress" id="prog-compliance">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('vendor',this)">
+    <span class="nav-icon">◔</span> Vendor &amp; 3rd Party
+    <span class="nav-progress" id="prog-vendor">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('change',this)">
+    <span class="nav-icon">↻</span> Change Management
+    <span class="nav-progress" id="prog-change">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('metrics',this)">
+    <span class="nav-icon">◈</span> Performance &amp; Metrics
+    <span class="nav-progress" id="prog-metrics">0%</span>
+  </button>
+  <button class="nav-item" onclick="showPage('incident',this)">
+    <span class="nav-icon">◯</span> Incident Response
+    <span class="nav-progress" id="prog-incident">0%</span>
+  </button>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-breadcrumb">
+        AI Governance &rsaquo; <span id="current-page-title">Dashboard</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="resetAll()">↺ Reset</button>
+      <button class="btn btn-primary" onclick="exportStatus()">⇩ Export Status</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div id="overview" class="page active">
+      <div class="hero">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">AI Program Governance</div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;line-height:1.2;">Enterprise Framework Dashboard</h2>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:6px;">12 domains · 80+ governance controls · Full lifecycle coverage</p>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:2px;">Version 1.0</div>
+            <div style="font-size:11px;color:var(--text-muted);">[Company Name]</div>
+          </div>
+        </div>
+        <div class="hero-grid">
+          <div class="metric-card">
+            <div class="m-label">DOMAINS ACTIVE</div>
+            <div class="m-val m-blue" id="dash-domains">0 / 12</div>
+            <div class="m-sub">governance areas</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">CONTROLS COMPLETED</div>
+            <div class="m-val m-teal" id="dash-controls">0 / 80</div>
+            <div class="m-sub">policies & requirements</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">CRITICAL RISKS</div>
+            <div class="m-val m-red">3</div>
+            <div class="m-sub">requiring immediate action</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-label">COMPLIANCE GAPS</div>
+            <div class="m-val m-gold">7</div>
+            <div class="m-sub">regulations to address</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain Cards Grid -->
+      <div class="domain-grid" style="margin-bottom:20px;">
+        <div class="domain-card" onclick="showPage('strategy',null)">
+          <div class="dc-icon">◎</div>
+          <div class="dc-name">Strategy &amp; Vision</div>
+          <div class="dc-desc">AI ambition, objectives, KPIs &amp; roadmap aligned to business goals</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--accent);width:0%" id="bar-strategy"></div></div></div>
+          <div class="dc-owner">Owner: CEO / CTO</div>
+        </div>
+        <div class="domain-card" onclick="showPage('governance',null)">
+          <div class="dc-icon">◈</div>
+          <div class="dc-name">Governance Structure</div>
+          <div class="dc-desc">Committees, RACI, decision rights &amp; accountability structures</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--purple);width:0%" id="bar-governance"></div></div></div>
+          <div class="dc-owner">Owner: CTO / COO</div>
+        </div>
+        <div class="domain-card" onclick="showPage('risk',null)">
+          <div class="dc-icon">◬</div>
+          <div class="dc-name">Risk Management</div>
+          <div class="dc-desc">Risk register, assessment, mitigation &amp; monitoring framework</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--red);width:0%" id="bar-risk"></div></div></div>
+          <div class="dc-owner">Owner: CRO / Legal</div>
+        </div>
+        <div class="domain-card" onclick="showPage('ethics',null)">
+          <div class="dc-icon">◇</div>
+          <div class="dc-name">Ethics &amp; Responsible AI</div>
+          <div class="dc-desc">Fairness, explainability, bias controls &amp; human oversight</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--purple);width:0%" id="bar-ethics"></div></div></div>
+          <div class="dc-owner">Owner: Ethics Board</div>
+        </div>
+        <div class="domain-card" onclick="showPage('data',null)">
+          <div class="dc-icon">⬡</div>
+          <div class="dc-name">Data Governance</div>
+          <div class="dc-desc">Data quality, lineage, privacy &amp; AI training data standards</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--teal);width:0%" id="bar-data"></div></div></div>
+          <div class="dc-owner">Owner: CDO / DPO</div>
+        </div>
+        <div class="domain-card" onclick="showPage('model',null)">
+          <div class="dc-icon">◉</div>
+          <div class="dc-name">Model Lifecycle</div>
+          <div class="dc-desc">Development, validation, deployment, monitoring &amp; retirement</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--accent);width:0%" id="bar-model"></div></div></div>
+          <div class="dc-owner">Owner: ML Engineering</div>
+        </div>
+        <div class="domain-card" onclick="showPage('security',null)">
+          <div class="dc-icon">⬟</div>
+          <div class="dc-name">Security &amp; Privacy</div>
+          <div class="dc-desc">AI security controls, adversarial threats, GDPR / CCPA</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--red);width:0%" id="bar-security"></div></div></div>
+          <div class="dc-owner">Owner: CISO</div>
+        </div>
+        <div class="domain-card" onclick="showPage('compliance',null)">
+          <div class="dc-icon">◱</div>
+          <div class="dc-name">Compliance &amp; Regulatory</div>
+          <div class="dc-desc">EU AI Act, NIST, ISO 42001 mapping &amp; audit trail</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--teal);width:0%" id="bar-compliance"></div></div></div>
+          <div class="dc-owner">Owner: Legal / Compliance</div>
+        </div>
+        <div class="domain-card" onclick="showPage('vendor',null)">
+          <div class="dc-icon">◔</div>
+          <div class="dc-name">Vendor &amp; 3rd Party</div>
+          <div class="dc-desc">Due diligence, contracts &amp; third-party AI risk management</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--gold);width:0%" id="bar-vendor"></div></div></div>
+          <div class="dc-owner">Owner: Procurement</div>
+        </div>
+        <div class="domain-card" onclick="showPage('change',null)">
+          <div class="dc-icon">↻</div>
+          <div class="dc-name">Change Management</div>
+          <div class="dc-desc">AI literacy, upskilling, communications &amp; culture change</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--green);width:0%" id="bar-change"></div></div></div>
+          <div class="dc-owner">Owner: HR / CHRO</div>
+        </div>
+        <div class="domain-card" onclick="showPage('metrics',null)">
+          <div class="dc-icon">◈</div>
+          <div class="dc-name">Performance &amp; Metrics</div>
+          <div class="dc-desc">KPIs, ROI tracking &amp; governance scorecard</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--accent);width:0%" id="bar-metrics"></div></div></div>
+          <div class="dc-owner">Owner: PMO / Analytics</div>
+        </div>
+        <div class="domain-card" onclick="showPage('incident',null)">
+          <div class="dc-icon">◯</div>
+          <div class="dc-name">Incident Response</div>
+          <div class="dc-desc">AI incident playbook, escalation &amp; post-mortem process</div>
+          <div style="margin-bottom:8px;"><div class="prog-bar"><div class="prog-fill" style="background:var(--orange);width:0%" id="bar-incident"></div></div></div>
+          <div class="dc-owner">Owner: Operations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STRATEGY & VISION ══ -->
+    <div id="strategy" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(59,130,246,0.15);">◎</div>
+            <div>
+              <h2>Strategy &amp; Vision</h2>
+              <p>Define AI ambition, strategic objectives, roadmap and success criteria</p>
+            </div>
+          </div>
+          <div id="prog-display-strategy" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent-glow);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">1.1 — Vision &amp; Mission <span class="stag">Strategic Foundation</span></div>
+            <div class="checklist" id="cl-strategy">
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Vision Statement defined</div>
+                  <div class="check-desc">Long-term aspiration for AI published and communicated company-wide</div>
+                </div>
+                <div class="check-meta"><span class="owner">CEO / CTO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Mission Statement approved</div>
+                  <div class="check-desc">Near-term purpose of AI initiatives documented and board-approved</div>
+                </div>
+                <div class="check-meta"><span class="owner">CEO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Core Principles published (4–6 principles)</div>
+                  <div class="check-desc">Fairness, transparency, accountability, safety, privacy, human-centricity</div>
+                </div>
+                <div class="check-meta"><span class="owner">Ethics Board</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">Scope of AI program defined</div>
+                  <div class="check-desc">Clear definition of what counts as AI (ML, GenAI, automation, analytics)</div>
+                </div>
+                <div class="check-meta"><span class="owner">AI Governance Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">Strategic AI objectives set with measurable KPIs</div>
+                  <div class="check-desc">Efficiency, CX, revenue growth, risk reduction targets defined with baselines</div>
+                </div>
+                <div class="check-meta"><span class="owner">C-Suite</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Roadmap published with priorities and timelines</div>
+                  <div class="check-desc">Foundation → Pilot → Scale phases with initiative owners assigned</div>
+                </div>
+                <div class="check-meta"><span class="owner">PMO / AI Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'strategy')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI budget allocated and approved</div>
+                  <div class="check-desc">Multi-year AI investment plan with OpEx/CapEx split approved by CFO</div>
+                </div>
+                <div class="check-meta"><span class="owner">CFO</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-title">1.2 — AI Roadmap Initiatives</div>
+            <div class="roadmap-item"><span class="ri-phase phase-foundation">Foundation</span><span class="ri-name">AI Governance Framework</span><span class="ri-domain">Governance</span><span class="badge badge-active" style="font-size:10px;">Active</span><span class="ri-q">Q1 2025</span></div>
+            <div class="roadmap-item"><span class="ri-phase phase-foundation">Foundation</span><span class="ri-name">Data Platform &amp; Lakehouse</span><span class="ri-domain">Data</span><span class="badge badge-planned">Planned</span><span class="ri-q">Q1–Q2</span></div>
+            <div class="roadmap-item"><span class="ri-phase phase-pilot">Pilot</span><span class="ri-name">Customer Service Chatbot (GenAI)</span><span class="ri-domain">CX</span><span class="badge badge-planned">Planned</span><span class="ri-q">Q2 2025</span></div>
+            <div class="roadmap-item"><span class="ri-phase phase-pilot">Pilot</span><span class="ri-name">Predictive Maintenance ML Model</span><span class="ri-domain">Operations</span><span class="badge badge-planned">Planned</span><span class="ri-q">Q2 2025</span></div>
+            <div class="roadmap-item"><span class="ri-phase phase-scale">Scale</span><span class="ri-name">Fraud Detection Model v2</span><span class="ri-domain">Risk</span><span class="badge badge-draft">In Progress</span><span class="ri-q">Q3 2025</span></div>
+            <div class="roadmap-item"><span class="ri-phase phase-scale">Scale</span><span class="ri-name">AI Supply Chain Optimization</span><span class="ri-domain">Operations</span><span class="badge badge-backlog">Backlog</span><span class="ri-q">Q4 2025</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GOVERNANCE STRUCTURE ══ -->
+    <div id="governance" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(139,92,246,0.15);">◈</div>
+            <div><h2>Governance Structure</h2><p>Committees, decision rights, accountability and RACI framework</p></div>
+          </div>
+          <div id="prog-display-governance" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#c4b5fd;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">2.1 — Governance Bodies Setup Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Executive Steering Committee established</div>
+                  <div class="check-desc">CEO, CTO, COO, CFO, CRO, CHRO · Quarterly cadence · Approved strategic decisions</div>
+                </div>
+                <div class="check-meta"><span class="owner">CEO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Governance Council operational</div>
+                  <div class="check-desc">AI Lead, Legal, Compliance, Security, Data · Monthly meetings</div>
+                </div>
+                <div class="check-meta"><span class="owner">AI Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Technical Review Board active</div>
+                  <div class="check-desc">ML Leads, Architects, IT Security · Bi-weekly · Model release approvals</div>
+                </div>
+                <div class="check-meta"><span class="owner">CTO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">AI Ethics Committee formed</div>
+                  <div class="check-desc">Ethics Lead, HR, Legal, External Advisor, Diversity Rep · Monthly</div>
+                </div>
+                <div class="check-meta"><span class="owner">Ethics Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">Business Unit AI Champions nominated</div>
+                  <div class="check-desc">Senior rep from each BU certified as AI Champion, monthly meetings</div>
+                </div>
+                <div class="check-meta"><span class="owner">HR / BUs</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'governance')">
+                <div class="check-box"></div>
+                <div class="check-content">
+                  <div class="check-title">RACI matrix approved and communicated</div>
+                  <div class="check-desc">All AI activities mapped with Responsible / Accountable / Consulted / Informed</div>
+                </div>
+                <div class="check-meta"><span class="owner">AI Governance Lead</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">2.2 — RACI Matrix <span class="stag">Key AI Activities</span></div>
+            <div style="overflow-x:auto;">
+              <table class="raci-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:180px;">Activity</th>
+                    <th>Exec<br>Sponsor</th>
+                    <th>AI Gov<br>Lead</th>
+                    <th>Data Sci /<br>ML Eng</th>
+                    <th>Legal /<br>Compliance</th>
+                    <th>BU<br>Owner</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Define AI Strategy &amp; Vision</td><td class="raci-a">A/R</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-i">I</td></tr>
+                  <tr><td>Approve AI Use Case</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-r">R</td></tr>
+                  <tr><td>Data Access &amp; Privacy Approval</td><td class="raci-i">I</td><td class="raci-a">A</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-c">C</td></tr>
+                  <tr><td>Model Development &amp; Training</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-r">R/A</td><td class="raci-i">I</td><td class="raci-c">C</td></tr>
+                  <tr><td>Ethical Review Sign-off</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-c">C</td></tr>
+                  <tr><td>Model Deployment Approval</td><td class="raci-i">I</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-r">R</td></tr>
+                  <tr><td>Incident Escalation</td><td class="raci-i">I</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-r">R</td><td class="raci-r">R</td></tr>
+                  <tr><td>Regulatory Reporting</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-i">I</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:8px;font-size:10px;color:var(--text-dim);">
+              <span class="raci-r">R</span> Responsible &nbsp;|&nbsp; <span class="raci-a">A</span> Accountable &nbsp;|&nbsp; <span class="raci-c">C</span> Consulted &nbsp;|&nbsp; <span class="raci-i">I</span> Informed
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RISK MANAGEMENT ══ -->
+    <div id="risk" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(239,68,68,0.15);">◬</div>
+            <div><h2>Risk Management</h2><p>AI risk register, assessment, scoring and mitigation controls</p></div>
+          </div>
+          <div id="prog-display-risk" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fca5a5;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">3.1 — Risk Register Setup Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'risk')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">AI Risk Register created and maintained</div><div class="check-desc">All AI risks documented with owner, likelihood, impact and mitigation</div></div>
+                <div class="check-meta"><span class="owner">CRO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'risk')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Risk scoring methodology approved</div><div class="check-desc">Likelihood × Impact matrix (1–5 scale) with Critical/High/Medium/Low thresholds</div></div>
+                <div class="check-meta"><span class="owner">CRO</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'risk')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Quarterly risk review process established</div><div class="check-desc">Scheduled reviews with AI Governance Council and risk escalation path defined</div></div>
+                <div class="check-meta"><span class="owner">AI Gov Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'risk')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Critical risks have active mitigation plans</div><div class="check-desc">All P1 risks with named owner, controls and evidence of implementation</div></div>
+                <div class="check-meta"><span class="owner">Risk Owners</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">3.2 — AI Risk Register</div>
+            <div style="overflow-x:auto;">
+              <table class="risk-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Risk</th><th>Category</th><th>L</th><th>I</th><th>Score</th><th>Level</th><th>Mitigation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-001</td><td>Model bias in decisions</td><td style="color:var(--text-muted);font-size:11px;">Ethics</td><td>3</td><td>4</td><td><span class="score-badge" style="background:rgba(249,115,22,0.15);color:#fdba74;">12</span></td><td><span class="risk-pill risk-high">HIGH</span></td><td style="font-size:11px;color:var(--text-muted);">Bias audits, fairness KPIs</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-002</td><td>PII data breach via AI</td><td style="color:var(--text-muted);font-size:11px;">Security</td><td>2</td><td>5</td><td><span class="score-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">10</span></td><td><span class="risk-pill risk-high">HIGH</span></td><td style="font-size:11px;color:var(--text-muted);">Encryption, DPIA, anonymization</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-003</td><td>Model drift – inaccurate predictions</td><td style="color:var(--text-muted);font-size:11px;">Performance</td><td>4</td><td>4</td><td><span class="score-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">16</span></td><td><span class="risk-pill risk-critical">CRITICAL</span></td><td style="font-size:11px;color:var(--text-muted);">Drift detection, retraining schedules</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-004</td><td>Vendor AI failure / SLA breach</td><td style="color:var(--text-muted);font-size:11px;">3rd Party</td><td>2</td><td>4</td><td><span class="score-badge" style="background:rgba(245,158,11,0.15);color:#fde68a;">8</span></td><td><span class="risk-pill risk-medium">MEDIUM</span></td><td style="font-size:11px;color:var(--text-muted);">Vendor SLAs, fallback processes</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-005</td><td>EU AI Act / GDPR non-compliance</td><td style="color:var(--text-muted);font-size:11px;">Regulatory</td><td>3</td><td>5</td><td><span class="score-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">15</span></td><td><span class="risk-pill risk-critical">CRITICAL</span></td><td style="font-size:11px;color:var(--text-muted);">Regulatory mapping, DPO, audit trail</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-006</td><td>Shadow AI / ungoverned tools</td><td style="color:var(--text-muted);font-size:11px;">Governance</td><td>4</td><td>3</td><td><span class="score-badge" style="background:rgba(249,115,22,0.15);color:#fdba74;">12</span></td><td><span class="risk-pill risk-high">HIGH</span></td><td style="font-size:11px;color:var(--text-muted);">Policy, approved tool list, monitoring</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-007</td><td>AI content reputational harm</td><td style="color:var(--text-muted);font-size:11px;">Reputation</td><td>3</td><td>4</td><td><span class="score-badge" style="background:rgba(249,115,22,0.15);color:#fdba74;">12</span></td><td><span class="risk-pill risk-high">HIGH</span></td><td style="font-size:11px;color:var(--text-muted);">Content moderation, human review</td></tr>
+                  <tr><td style="font-family:monospace;font-size:10px;color:var(--text-dim);">R-008</td><td>Adversarial attacks (prompt injection)</td><td style="color:var(--text-muted);font-size:11px;">Cyber</td><td>2</td><td>5</td><td><span class="score-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">10</span></td><td><span class="risk-pill risk-critical">CRITICAL</span></td><td style="font-size:11px;color:var(--text-muted);">Red-teaming, model hardening, anomaly</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ETHICS ══ -->
+    <div id="ethics" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(139,92,246,0.15);">◇</div>
+            <div><h2>Ethics &amp; Responsible AI</h2><p>Fairness, transparency, explainability and human oversight</p></div>
+          </div>
+          <div id="prog-display-ethics" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#c4b5fd;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">4.1 — Responsible AI Principles Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Fairness &amp; Non-Discrimination policy in place</div><div class="check-desc">Bias testing conducted, fairness metrics defined, protected attributes documented</div></div>
+                <div class="check-meta"><span class="owner">Ethics Committee</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Transparency &amp; Explainability framework established</div><div class="check-desc">XAI tools deployed, model cards created, explanations available to affected parties</div></div>
+                <div class="check-meta"><span class="owner">AI Gov Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Accountability structures defined</div><div class="check-desc">Named human owner for every AI system, liability defined in contracts</div></div>
+                <div class="check-meta"><span class="owner">AI Gov Council</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Privacy by Design standard adopted</div><div class="check-desc">DPIA completed for all AI systems, PII minimized, consent flows implemented</div></div>
+                <div class="check-meta"><span class="owner">DPO / Legal</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Human Oversight &amp; Control mechanisms in place</div><div class="check-desc">Override mechanisms exist, escalation paths defined, audit logs maintained</div></div>
+                <div class="check-meta"><span class="owner">Operations</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Safety &amp; Reliability testing completed</div><div class="check-desc">Rigorous test plan, failure modes documented, incident history reviewed</div></div>
+                <div class="check-meta"><span class="owner">Engineering Lead</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Societal impact assessment conducted</div><div class="check-desc">Harms assessed, stakeholder review completed, Do-No-Harm checklist signed off</div></div>
+                <div class="check-meta"><span class="owner">Ethics Committee</span></div>
+              </div>
+              <div class="check-item" onclick="toggle(this,'ethics')">
+                <div class="check-box"></div>
+                <div class="check-content"><div class="check-title">Inclusivity &amp; Accessibility standards met</div><div class="check-desc">All demographic groups represented in testing, accessibility testing completed</div></div>
+                <div class="check-meta"><span class="owner">Product / Design</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">4.2 — Core Principles</div>
+            <div class="principle-card"><div class="pc-num">1</div><div><div class="pc-title">Fairness</div><div class="pc-desc">AI must not discriminate on protected attributes — race, gender, age, disability, religion</div></div></div>
+            <div class="principle-card"><div class="pc-num">2</div><div><div class="pc-title">Transparency</div><div class="pc-desc">AI decisions must be explainable to affected parties, regulators and auditors</div></div></div>
+            <div class="principle-card"><div class="pc-num">3</div><div><div class="pc-title">Accountability</div><div class="pc-desc">Clear human accountability for every AI system and its real-world outcomes</div></div></div>
+            <div class="principle-card"><div class="pc-num">4</div><div><div class="pc-title">Privacy</div><div class="pc-desc">Data privacy embedded from design — minimization, consent, DPIA by default</div></div></div>
+            <div class="principle-card"><div class="pc-num">5</div><div><div class="pc-title">Safety</div><div class="pc-desc">AI systems rigorously tested, failure modes documented, rollback plans active</div></div></div>
+            <div class="principle-card"><div class="pc-num">6</div><div><div class="pc-title">Human Control</div><div class="pc-desc">Humans can always override, audit, and correct any AI decision</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DATA ══ -->
+    <div id="data" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(13,148,136,0.15);">⬡</div>
+            <div><h2>Data Governance</h2><p>Data quality, lineage, privacy and AI training data standards</p></div>
+          </div>
+          <div id="prog-display-data" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal-light);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Quality Framework defined</div><div class="check-desc">Completeness, accuracy, consistency, timeliness dimensions documented and enforced</div></div><div class="check-meta"><span class="owner">CDO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Lineage tracking implemented</div><div class="check-desc">Full lineage from source to model for all AI training datasets</div></div><div class="check-meta"><span class="owner">Data Eng</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Classification Policy in place</div><div class="check-desc">All data classified: Public, Internal, Confidential, Restricted</div></div><div class="check-meta"><span class="owner">CDO / DPO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">PII &amp; Sensitive Data controls applied</div><div class="check-desc">Anonymization and pseudonymization standards for AI training data enforced</div></div><div class="check-meta"><span class="owner">DPO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Retention &amp; Deletion policy set</div><div class="check-desc">Retention periods defined for training data and model artifacts, deletion enforced</div></div><div class="check-meta"><span class="owner">Legal / DPO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">RBAC for AI datasets implemented</div><div class="check-desc">Role-based access controls deployed across all AI data infrastructure</div></div><div class="check-meta"><span class="owner">IT Security</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Consent &amp; Legal Basis confirmed for training data</div><div class="check-desc">Lawful basis documented for each dataset under GDPR Article 6</div></div><div class="check-meta"><span class="owner">Legal / DPO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">Third-Party data licenses reviewed</div><div class="check-desc">Usage rights confirmed for all external datasets used in AI training</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+            <div class="check-item" onclick="toggle(this,'data')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI Training Data Register maintained</div><div class="check-desc">All datasets catalogued with source, PII status, consent basis and quality score</div></div><div class="check-meta"><span class="owner">CDO</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODEL LIFECYCLE ══ -->
+    <div id="model" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(59,130,246,0.15);">◉</div>
+            <div><h2>Model Lifecycle Management</h2><p>Development → Validation → Deployment → Monitoring → Retirement</p></div>
+          </div>
+          <div id="prog-display-model" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent-glow);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">6.1 — Model Inventory</div>
+            <div class="model-card"><span class="mc-id">M-001</span><span class="mc-name">Customer Churn Prediction</span><span class="mc-stage">Production</span><span class="risk-pill risk-high" style="font-size:10px;">High Risk</span><span class="badge badge-active">Active</span></div>
+            <div class="model-card"><span class="mc-id">M-002</span><span class="mc-name">Fraud Detection v3</span><span class="mc-stage">Production</span><span class="risk-pill risk-critical" style="font-size:10px;">Critical</span><span class="badge badge-active">Active</span></div>
+            <div class="model-card"><span class="mc-id">M-003</span><span class="mc-name">GenAI Customer Support Bot</span><span class="mc-stage">Pilot</span><span class="risk-pill risk-high" style="font-size:10px;">High Risk</span><span class="badge badge-draft">In Progress</span></div>
+            <div class="model-card"><span class="mc-id">M-004</span><span class="mc-name">Supply Chain Demand Forecast</span><span class="mc-stage">Development</span><span class="risk-pill risk-medium" style="font-size:10px;">Medium</span><span class="badge badge-planned">Planned</span></div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">6.2 — Lifecycle Gate Checklist (7 Gates)</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 1: Problem Definition approved</div><div class="check-desc">Business case, ethics intake, data availability confirmed · Sign-off: Business Owner + AI Gov</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 2: Data Readiness verified</div><div class="check-desc">Data quality checks, PII scan, consent confirmed, lineage documented · Sign-off: CDO + DPO</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 3: Model Development reviewed</div><div class="check-desc">Design review, code review, testing plan defined · Sign-off: Technical Review Board</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 4: Model Validation completed</div><div class="check-desc">Performance metrics met, bias tested, explainability reviewed · Sign-off: Risk + Ethics</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 5: Deployment Approval granted</div><div class="check-desc">Security review, monitoring plan, rollback plan · Sign-off: AI Gov Council + CISO</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 6: Post-Deploy Monitoring active</div><div class="check-desc">Drift monitoring live, dashboards active, alerts configured · Sign-off: AI Gov Lead</div></div></div>
+              <div class="check-item" onclick="toggle(this,'model')"><div class="check-box"></div><div class="check-content"><div class="check-title">Gate 7: Retirement plan documented</div><div class="check-desc">Decommission plan, data deletion, stakeholder notification · Sign-off: Business Owner</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECURITY ══ -->
+    <div id="security" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(239,68,68,0.15);">⬟</div>
+            <div><h2>Security &amp; Privacy</h2><p>AI security controls, adversarial threats, GDPR / CCPA compliance</p></div>
+          </div>
+          <div id="prog-display-security" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fca5a5;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">Adversarial robustness testing completed</div><div class="check-desc">Prompt injection, data poisoning, evasion attacks tested via red-teaming</div></div><div class="check-meta"><span class="owner">CISO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">Encryption at rest and in transit enforced</div><div class="check-desc">All AI training data and model weights encrypted with approved standards</div></div><div class="check-meta"><span class="owner">IT Security</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">RBAC implemented for AI systems</div><div class="check-desc">Role-based access to models, training data and ML platforms</div></div><div class="check-meta"><span class="owner">IAM Team</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">API security controls deployed</div><div class="check-desc">Auth, rate limiting, WAF on all AI model serving endpoints</div></div><div class="check-meta"><span class="owner">Engineering</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">Supply chain security validated</div><div class="check-desc">Open-source models, libraries and pre-trained weights validated (SBOM)</div></div><div class="check-meta"><span class="owner">Engineering</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI anomaly detection and monitoring active</div><div class="check-desc">Unusual queries, outputs and access patterns detected via SIEM</div></div><div class="check-meta"><span class="owner">SecOps</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">DPIA completed for all AI systems</div><div class="check-desc">Privacy impact assessments for all systems processing personal data</div></div><div class="check-meta"><span class="owner">DPO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">GenAI-specific DLP controls in place</div><div class="check-desc">No PII in LLM prompts enforced, output filtering active</div></div><div class="check-meta"><span class="owner">CISO</span></div></div>
+            <div class="check-item" onclick="toggle(this,'security')"><div class="check-box"></div><div class="check-content"><div class="check-title">Comprehensive audit logging enabled</div><div class="check-desc">All model queries, decisions and access logged with retention policy</div></div><div class="check-meta"><span class="owner">IT / Compliance</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ COMPLIANCE ══ -->
+    <div id="compliance" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(13,148,136,0.15);">◱</div>
+            <div><h2>Compliance &amp; Regulatory</h2><p>Regulatory mapping, audit readiness and compliance obligations</p></div>
+          </div>
+          <div id="prog-display-compliance" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal-light);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">8.1 — Regulatory Requirements Mapping</div>
+            <div class="reg-card"><div class="rc-header"><div class="rc-name">EU AI Act</div><span class="badge badge-critical">Critical</span><div class="rc-region">European Union</div></div><div class="rc-req">Risk classification, conformity assessment, transparency obligations for high-risk AI systems</div><div class="tag-row"><span class="tag">High-Risk AI</span><span class="tag">Conformity Assessment</span><span class="tag">Transparency</span></div></div>
+            <div class="reg-card"><div class="rc-header"><div class="rc-name">GDPR / UK GDPR</div><span class="badge badge-critical">Critical</span><div class="rc-region">EU / UK</div></div><div class="rc-req">Lawful basis, data subject rights, automated decision-making (Art. 22), DPIA requirements</div><div class="tag-row"><span class="tag">DPIA</span><span class="tag">Art. 22</span><span class="tag">Data Subject Rights</span></div></div>
+            <div class="reg-card"><div class="rc-header"><div class="rc-name">NIST AI RMF</div><span class="badge badge-planned">Framework</span><div class="rc-region">USA – Federal</div></div><div class="rc-req">Govern, Map, Measure, Manage AI risks across the full lifecycle</div><div class="tag-row"><span class="tag">GOVERN</span><span class="tag">MAP</span><span class="tag">MEASURE</span><span class="tag">MANAGE</span></div></div>
+            <div class="reg-card"><div class="rc-header"><div class="rc-name">ISO/IEC 42001</div><span class="badge badge-planned">Standard</span><div class="rc-region">International</div></div><div class="rc-req">AI Management System standard — governance, risk management, transparency requirements</div><div class="tag-row"><span class="tag">AI Management System</span><span class="tag">Certification</span></div></div>
+            <div class="reg-card"><div class="rc-header"><div class="rc-name">CCPA / CPRA</div><span class="badge badge-draft">Review</span><div class="rc-region">California, USA</div></div><div class="rc-req">Consumer rights regarding automated decisions, opt-out of sale, data categories disclosure</div><div class="tag-row"><span class="tag">Consumer Rights</span><span class="tag">Opt-Out</span></div></div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">8.2 — Compliance Readiness Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'compliance')"><div class="check-box"></div><div class="check-content"><div class="check-title">Regulatory requirements mapped to AI systems</div><div class="check-desc">All applicable regulations identified and owners assigned per AI use case</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+              <div class="check-item" onclick="toggle(this,'compliance')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI audit trail requirements implemented</div><div class="check-desc">Decision logging, data lineage, change log, access log all active</div></div><div class="check-meta"><span class="owner">Compliance</span></div></div>
+              <div class="check-item" onclick="toggle(this,'compliance')"><div class="check-box"></div><div class="check-content"><div class="check-title">Compliance gap analysis completed</div><div class="check-desc">All gaps documented with remediation plan and target date</div></div><div class="check-meta"><span class="owner">Legal / AI Gov</span></div></div>
+              <div class="check-item" onclick="toggle(this,'compliance')"><div class="check-box"></div><div class="check-content"><div class="check-title">DPO involved in AI governance process</div><div class="check-desc">Data Protection Officer reviews all AI projects processing personal data</div></div><div class="check-meta"><span class="owner">DPO</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VENDOR ══ -->
+    <div id="vendor" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(245,158,11,0.15);">◔</div>
+            <div><h2>Vendor &amp; Third-Party AI</h2><p>Due diligence, contracts and third-party AI risk management</p></div>
+          </div>
+          <div id="prog-display-vendor" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--gold-light);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">9.1 — Vendor Due Diligence Checklist (per vendor)</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Responsible AI / Ethics policy verified</div><div class="check-desc">Vendor has published responsible AI policy and it meets our standards</div></div><div class="check-meta"><span class="owner">Procurement</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Processing Agreement (DPA) signed</div><div class="check-desc">DPA covers AI training data, outputs, and data subject rights</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Security certifications confirmed (SOC 2 / ISO 27001)</div><div class="check-desc">Copies of current certifications obtained and validity period confirmed</div></div><div class="check-meta"><span class="owner">IT Security</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Model transparency documentation received</div><div class="check-desc">Model card, performance characteristics, limitations and training data disclosed</div></div><div class="check-meta"><span class="owner">AI Gov</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Bias &amp; Fairness testing evidence obtained</div><div class="check-desc">Vendor has provided bias test reports for their AI models</div></div><div class="check-meta"><span class="owner">Ethics Committee</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Audit rights clause in contract</div><div class="check-desc">Right to audit vendor AI systems included in master agreement</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">72-hour incident notification SLA agreed</div><div class="check-desc">Vendor contractually required to notify of AI-related incidents within 72 hours</div></div><div class="check-meta"><span class="owner">Legal / Ops</span></div></div>
+              <div class="check-item" onclick="toggle(this,'vendor')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data portability and exit plan documented</div><div class="check-desc">Data return / deletion and business continuity on exit defined in contract</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CHANGE ══ -->
+    <div id="change" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(34,197,94,0.15);">↻</div>
+            <div><h2>Change Management &amp; AI Culture</h2><p>AI literacy, training, communications and cultural transformation</p></div>
+          </div>
+          <div id="prog-display-change" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#86efac;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">10.1 — AI Training &amp; Literacy Program</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">All-employee AI Awareness training launched</div><div class="check-desc">AI fundamentals + responsible use · 1 hr e-learning · Target: 100% in 90 days</div></div><div class="check-meta"><span class="owner">HR / L&amp;D</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">Manager-level AI Ethics &amp; Accountability workshop</div><div class="check-desc">Decision-making, ethics, accountability · 2 hr workshop · All people managers</div></div><div class="check-meta"><span class="owner">HR</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">Data Science / ML governance training delivered</div><div class="check-desc">AI policies, responsible AI development · 4 hr · All technical staff</div></div><div class="check-meta"><span class="owner">AI Lead</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">Legal &amp; Compliance AI regulatory briefing completed</div><div class="check-desc">EU AI Act, GDPR / AI intersection · 3 hr workshop</div></div><div class="check-meta"><span class="owner">Legal</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">Executive AI leadership briefing held</div><div class="check-desc">AI strategy, governance and oversight for C-Suite &amp; Board · 1.5 hr</div></div><div class="check-meta"><span class="owner">CEO</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI Champion Certification program active</div><div class="check-desc">BU Champions certified: 8 hr blended program across all business units</div></div><div class="check-meta"><span class="owner">HR / AI Gov</span></div></div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">10.2 — Communications Plan Readiness</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">All-employee AI newsletter / intranet updates cadence set</div><div class="check-desc">Monthly AI program updates, wins and policy changes communicated</div></div><div class="check-meta"><span class="owner">Comms</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">Board AI reporting cadence established</div><div class="check-desc">Quarterly board report: AI strategy, risk appetite, compliance status</div></div><div class="check-meta"><span class="owner">CEO / CTO</span></div></div>
+              <div class="check-item" onclick="toggle(this,'change')"><div class="check-box"></div><div class="check-content"><div class="check-title">External AI policy / responsible AI statement published</div><div class="check-desc">Public-facing responsible AI commitments on company website</div></div><div class="check-meta"><span class="owner">Marketing / Legal</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ METRICS ══ -->
+    <div id="metrics" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(59,130,246,0.15);">◈</div>
+            <div><h2>Performance &amp; Metrics</h2><p>AI program KPIs, model performance and governance scorecard</p></div>
+          </div>
+          <div id="prog-display-metrics" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent-glow);">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">11.1 — AI Governance Scorecard Setup Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'metrics')"><div class="check-box"></div><div class="check-content"><div class="check-title">KPI framework defined for all 12 domains</div><div class="check-desc">Metrics, targets and baselines documented for each governance domain</div></div><div class="check-meta"><span class="owner">PMO</span></div></div>
+              <div class="check-item" onclick="toggle(this,'metrics')"><div class="check-box"></div><div class="check-content"><div class="check-title">Model performance dashboards live</div><div class="check-desc">Accuracy, drift, latency dashboards active for all production models</div></div><div class="check-meta"><span class="owner">ML Ops</span></div></div>
+              <div class="check-item" onclick="toggle(this,'metrics')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI ROI tracking methodology agreed</div><div class="check-desc">Revenue lift, cost savings and productivity gains attributable to AI tracked</div></div><div class="check-meta"><span class="owner">CFO / PMO</span></div></div>
+              <div class="check-item" onclick="toggle(this,'metrics')"><div class="check-box"></div><div class="check-content"><div class="check-title">Quarterly governance review cycle established</div><div class="check-desc">Scorecard reviewed by AI Governance Council every quarter</div></div><div class="check-meta"><span class="owner">AI Gov Lead</span></div></div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">11.2 — Governance Scorecard KPIs</div>
+            <div class="kpi-grid">
+              <div class="kpi-card"><div class="kpi-domain">Strategy</div><div class="kpi-name">AI roadmap milestones on time</div><div class="kpi-row"><div class="kpi-target">Target: 80%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Governance</div><div class="kpi-name">Policy compliance rate</div><div class="kpi-row"><div class="kpi-target">Target: 95%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Risk</div><div class="kpi-name">Critical risks with mitigation</div><div class="kpi-row"><div class="kpi-target">Target: 100%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Ethics</div><div class="kpi-name">Use cases with ethics review</div><div class="kpi-row"><div class="kpi-target">Target: 100%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Data</div><div class="kpi-name">Avg training data quality score</div><div class="kpi-row"><div class="kpi-target">Target: 4.0 / 5</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Model Lifecycle</div><div class="kpi-name">Models with monitoring active</div><div class="kpi-row"><div class="kpi-target">Target: 100%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Security</div><div class="kpi-name">Security controls implemented</div><div class="kpi-row"><div class="kpi-target">Target: 90%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Compliance</div><div class="kpi-name">Regulations in compliant status</div><div class="kpi-row"><div class="kpi-target">Target: 100%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Change Mgmt</div><div class="kpi-name">AI training completion rate</div><div class="kpi-row"><div class="kpi-target">Target: 90%</div><div class="kpi-val">—</div></div></div>
+              <div class="kpi-card"><div class="kpi-domain">Incidents</div><div class="kpi-name">Incidents resolved within SLA</div><div class="kpi-row"><div class="kpi-target">Target: 95%</div><div class="kpi-val">—</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INCIDENT ══ -->
+    <div id="incident" class="page">
+      <div class="panel active">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-icon" style="background:rgba(249,115,22,0.15);">◯</div>
+            <div><h2>Incident Response</h2><p>AI incident detection, triage, escalation and post-mortem process</p></div>
+          </div>
+          <div id="prog-display-incident" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fdba74;">0%</div>
+        </div>
+        <div class="panel-body">
+          <div class="subsection">
+            <div class="subsection-title">12.1 — Incident Response Setup Checklist</div>
+            <div class="checklist">
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI Incident Response Playbook published</div><div class="check-desc">Covers detection, triage, escalation, resolution and post-mortem for P1–P4</div></div><div class="check-meta"><span class="owner">CISO / AI Gov</span></div></div>
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">Incident severity classification defined</div><div class="check-desc">P1 Critical (1hr), P2 High (4hr), P3 Medium (24hr), P4 Low (72hr) SLAs</div></div><div class="check-meta"><span class="owner">Operations</span></div></div>
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">Escalation tree documented and tested</div><div class="check-desc">Clear escalation path from team lead to executive to board for P1 incidents</div></div><div class="check-meta"><span class="owner">AI Gov Lead</span></div></div>
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">Post-mortem process established</div><div class="check-desc">Root cause analysis, corrective actions and lessons learned template in use</div></div><div class="check-meta"><span class="owner">Engineering</span></div></div>
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">AI Incident log maintained and reviewed</div><div class="check-desc">All incidents logged, status tracked, monthly review by AI Governance Council</div></div><div class="check-meta"><span class="owner">AI Gov Lead</span></div></div>
+              <div class="check-item" onclick="toggle(this,'incident')"><div class="check-box"></div><div class="check-content"><div class="check-title">Regulatory notification process defined</div><div class="check-desc">Process for notifying regulators / data subjects within required timeframes</div></div><div class="check-meta"><span class="owner">Legal / DPO</span></div></div>
+            </div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-title">12.2 — Severity Reference</div>
+            <div class="incident-item" style="border-color:rgba(239,68,68,0.3)"><div class="inc-row"><span class="risk-pill risk-critical">P1 CRITICAL</span><span class="inc-title">Active harm, data breach, regulator involvement, business-stopping</span></div><div class="inc-desc">Response: 1 hour · Escalate to: CEO, CISO, Legal, Board (if required)</div></div>
+            <div class="incident-item" style="border-color:rgba(249,115,22,0.3)"><div class="inc-row"><span class="risk-pill risk-high">P2 HIGH</span><span class="inc-title">Major bias, significant performance degradation, regulatory breach risk</span></div><div class="inc-desc">Response: 4 hours · Escalate to: CTO, CRO, AI Governance Lead, Legal</div></div>
+            <div class="incident-item" style="border-color:rgba(245,158,11,0.3)"><div class="inc-row"><span class="risk-pill risk-medium">P3 MEDIUM</span><span class="inc-title">Moderate model drift, isolated decision errors, minor data quality issues</span></div><div class="inc-desc">Response: 24 hours · Escalate to: AI Technical Review Board</div></div>
+            <div class="incident-item" style="border-color:rgba(34,197,94,0.3)"><div class="inc-row"><span class="risk-pill risk-low">P4 LOW</span><span class="inc-title">Minor anomalies, low-impact issues, near-miss events</span></div><div class="inc-desc">Response: 72 hours · Notify: AI Governance Lead (FYI)</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+const state = {
+  strategy: [], governance: [], risk: [], ethics: [],
+  data: [], model: [], security: [], compliance: [],
+  vendor: [], change: [], metrics: [], incident: []
+};
+
+const domainColors = {
+  strategy:'var(--accent)',governance:'var(--purple)',risk:'var(--red)',ethics:'var(--purple)',
+  data:'var(--teal)',model:'var(--accent)',security:'var(--red)',compliance:'var(--teal)',
+  vendor:'var(--gold)',change:'var(--green)',metrics:'var(--accent)',incident:'var(--orange)'
+};
+
+function getItems(domain) {
+  const page = document.getElementById(domain);
+  if(!page) return [];
+  return page.querySelectorAll('.check-item');
+}
+
+function toggle(el, domain) {
+  el.classList.toggle('done');
+  el.querySelector('.check-box').textContent = el.classList.contains('done') ? '✓' : '';
+  updateProgress(domain);
+}
+
+function updateProgress(domain) {
+  const items = getItems(domain);
+  if(!items.length) return;
+  const done = [...items].filter(i=>i.classList.contains('done')).length;
+  const pct = Math.round((done/items.length)*100);
+
+  const progEl = document.getElementById('prog-'+domain);
+  const dispEl = document.getElementById('prog-display-'+domain);
+  const barEl = document.getElementById('bar-'+domain);
+
+  if(progEl) progEl.textContent = pct+'%';
+  if(dispEl) dispEl.textContent = pct+'%';
+  if(barEl) barEl.style.width = pct+'%';
+
+  updateOverall();
+}
+
+function updateOverall() {
+  const domains = ['strategy','governance','risk','ethics','data','model','security','compliance','vendor','change','metrics','incident'];
+  let totalDone = 0, totalItems = 0, activeDomains = 0;
+  domains.forEach(d => {
+    const items = getItems(d);
+    const done = [...items].filter(i=>i.classList.contains('done')).length;
+    totalDone += done;
+    totalItems += items.length;
+    if(done > 0) activeDomains++;
+  });
+  const overall = totalItems > 0 ? Math.round((totalDone/totalItems)*100) : 0;
+  document.getElementById('overall-score').textContent = overall+'%';
+  document.getElementById('overall-fill').style.width = overall+'%';
+  document.getElementById('dash-domains').textContent = activeDomains+' / 12';
+  document.getElementById('dash-controls').textContent = totalDone+' / '+totalItems;
+}
+
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const page = document.getElementById(id);
+  if(page) page.classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+    });
+  }
+  const titles = {
+    overview:'Dashboard',strategy:'Strategy & Vision',governance:'Governance Structure',
+    risk:'Risk Management',ethics:'Ethics & Responsible AI',data:'Data Governance',
+    model:'Model Lifecycle',security:'Security & Privacy',compliance:'Compliance & Regulatory',
+    vendor:'Vendor & 3rd Party',change:'Change Management',metrics:'Performance & Metrics',
+    incident:'Incident Response'
+  };
+  document.getElementById('current-page-title').textContent = titles[id] || id;
+}
+
+function resetAll() {
+  if(!confirm('Reset all checklist progress?')) return;
+  document.querySelectorAll('.check-item').forEach(el => {
+    el.classList.remove('done');
+    el.querySelector('.check-box').textContent = '';
+  });
+  ['strategy','governance','risk','ethics','data','model','security','compliance','vendor','change','metrics','incident'].forEach(d=>updateProgress(d));
+}
+
+function exportStatus() {
+  const domains = ['strategy','governance','risk','ethics','data','model','security','compliance','vendor','change','metrics','incident'];
+  let text = 'AI GOVERNANCE FRAMEWORK STATUS REPORT\n';
+  text += 'Generated: '+new Date().toLocaleDateString()+'\n\n';
+  domains.forEach(d=>{
+    const items = getItems(d);
+    const done = [...items].filter(i=>i.classList.contains('done')).length;
+    const pct = items.length ? Math.round((done/items.length)*100) : 0;
+    text += d.toUpperCase()+': '+pct+'% ('+done+'/'+items.length+' controls)\n';
+  });
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'AI_Governance_Status.txt';
+  a.click();
+}
+
+updateOverall();
+</script>
+</body>
+</html>
